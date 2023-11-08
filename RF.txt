@@ -1,0 +1,545 @@
+Script berikut Merupakan Pengembangan dari script yang digunakan oleh Crego et al., 2022 pada penelitiannya yang berjudul: Implementation of spesies distribution models in Google Earth Engine" yang saya kembangkan pada penelitian saya dengan judul "Prediksi Daerah Penangkapan Ikan Tuna Sirip Kuning (Thunnus albacares) menggunakan Machine Learning" disini saya menggunakan data keberadaan Tuna Sirip Kuning tahun 2018-2022 dan parameter Lingkungan yang berpengaruh berupa Sebaran Klorofil-A, Suhu Permukaan Laut, Salinitas dan Tinggi Muka Laut.
+
+Scrip Lingkungan
+// Fungsi untuk mendapatkan rata-rata klorofil-a dari Desember hingga Februari untuk setiap tahun
+function getDecFebAverage(year) {
+  var startDate = ee.Date.fromYMD(year, 12, 1);
+  var endDate = ee.Date.fromYMD(year + 1, 2, 28);
+  var collection = ee.ImageCollection('NASA/OCEANDATA/MODIS-Aqua/L3SMI')
+                      .filterDate(startDate, endDate)
+                      .select('chlor_a');
+  return collection.mean().clip(table).set('year', year);
+}
+
+// Mendapatkan rata-rata klorofil-a untuk setiap periode Desember-Februari dari tahun 2018-2022
+var years = [2017, 2018, 2019, 2020, 2021];
+var chlAvgCollection = ee.ImageCollection(years.map(getDecFebAverage));
+
+// Mengambil rata-rata dari semua periode Desember-Februari
+var chlAvg = chlAvgCollection.mean(); 
+
+// Menentukan parameter visualisasi
+var visParams = {
+  min: 0,
+  max: 1.5,
+  palette: [
+    '040274', '040281', '0502a3', '0502b8', '0502ce', '0502e6',
+    '0602ff', '235cb1', '307ef3', '269db1', '30c8e2', '32d3ef',
+    '3be285', '3ff38f', '86e26d', '3ae237', 'b5e22e', 'd6e21f',
+    'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
+    'ff0000', 'de0101', 'c21301', 'a71001', '911003'
+  ],
+};
+
+// Menampilkan data ke peta
+Map.setCenter(100, 0, 8); // Pusatkan peta ke koordinat (100, 0) dengan zoom level 8
+Map.addLayer(chlAvg, visParams, 'Average CHL-A (Dec-Feb 2018-2022)');
+Export.image.toDrive({image      : chlAvg,
+                      folder     : 'FIX HASIL TESIS',
+                      description: 'CHLMB',
+                      scale      : 8905.6,
+                      region     : table});
+
+// Fungsi untuk mendapatkan rata-rata salinitas dari Desember hingga Februari untuk setiap tahun
+function getDecFebAverage2(year) {
+  var startDate = ee.Date.fromYMD(year, 12, 1);
+  var endDate = ee.Date.fromYMD(year + 1, 2, 28);
+  var collection = ee.ImageCollection('HYCOM/sea_temp_salinity')
+                      .filterDate(startDate, endDate)
+                      .select('salinity_0').map(function scaleAndOffset(image) {return ee.Image(image).multiply(0.001).add(20)});
+  return collection.mean().clip(table).set('year', year);
+}
+
+// Mendapatkan rata-rata salinitas untuk setiap periode Desember-Februari dari tahun 2018-2022
+var years = [2017, 2018, 2019, 2020, 2021];
+var sssAvgCollection = ee.ImageCollection(years.map(getDecFebAverage2));
+
+// Mengambil rata-rata dari semua periode Desember-Februari
+var sssAvg = sssAvgCollection.mean();
+
+// Menentukan parameter visualisasi
+var visParams = {
+  min: 32,
+  max: 35,
+  palette: [
+    '040274', '040281', '0502a3', '0502b8', '0502ce', '0502e6',
+    '0602ff', '235cb1', '307ef3', '269db1', '30c8e2', '32d3ef',
+    '3be285', '3ff38f', '86e26d', '3ae237', 'b5e22e', 'd6e21f',
+    'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
+    'ff0000', 'de0101', 'c21301', 'a71001', '911003'
+  ],
+};
+
+// Menampilkan data ke peta
+Map.setCenter(100, 0, 8); // Pusatkan peta ke koordinat (100, 0) dengan zoom level 8
+Map.addLayer(sssAvg, visParams, 'Average SSS (Dec-Feb 2018-2022)');
+Export.image.toDrive({image      : sssAvg,
+                      folder     : 'FIX HASIL TESIS',
+                      description: 'SSSMB',
+                      scale      : 8905.6,
+                      region     : table});
+
+// Fungsi untuk mendapatkan rata-rata SST dari Desember hingga Februari untuk setiap tahun
+function getDecFebAverage2(year) {
+  var startDate = ee.Date.fromYMD(year, 12, 1);
+  var endDate = ee.Date.fromYMD(year + 1, 2, 28);
+  var collection = ee.ImageCollection('NASA/OCEANDATA/MODIS-Aqua/L3SMI')
+                      .filterDate(startDate, endDate)
+                      .select('sst');
+  return collection.mean().clip(table).set('year', year);
+}
+
+// Mendapatkan rata-rata SST untuk setiap periode Desember-Februari dari tahun 2018-2022
+var years = [2017, 2018, 2019, 2020, 2021];
+var sstAvgCollection = ee.ImageCollection(years.map(getDecFebAverage2));
+
+// Mengambil rata-rata dari semua periode Desember-Februari
+var sstAvg = sstAvgCollection.mean();
+
+// Menentukan parameter visualisasi
+var visParams = {
+  min: 27,
+  max: 32,
+  palette: [
+    '040274', '040281', '0502a3', '0502b8', '0502ce', '0502e6',
+    '0602ff', '235cb1', '307ef3', '269db1', '30c8e2', '32d3ef',
+    '3be285', '3ff38f', '86e26d', '3ae237', 'b5e22e', 'd6e21f',
+    'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
+    'ff0000', 'de0101', 'c21301', 'a71001', '911003'
+  ],
+};
+
+// Menampilkan data ke peta
+Map.setCenter(100, 0, 8); // Pusatkan peta ke koordinat (100, 0) dengan zoom level 8
+Map.addLayer(sstAvg, visParams, 'Average SST (Dec-Feb 2018-2022)');
+Export.image.toDrive({image      : sstAvg,
+                      folder     : 'FIX HASIL TESIS',
+                      description: 'SPLMB',
+                      scale      : 8905.6,
+                      region     : table});
+
+// Fungsi untuk mendapatkan rata-rata TML dari Desember hingga Februari untuk setiap tahun
+function getDecFebAverage3(year) {
+  var startDate = ee.Date.fromYMD(year, 12, 1);
+  var endDate = ee.Date.fromYMD(year + 1, 2, 28);
+  var collection = ee.ImageCollection('HYCOM/sea_surface_elevation')
+                      .filterDate(startDate, endDate)
+                      .select('surface_elevation').map(function scaleAndOffset(image) {return ee.Image(image).multiply(0.001)});
+  return collection.mean().clip(table).set('year', year);
+}
+
+// Mendapatkan rata-rata TML untuk setiap periode Desember-Februari dari tahun 2018-2022
+var years = [2017, 2018, 2019, 2020, 2021];
+var tmlAvgCollection = ee.ImageCollection(years.map(getDecFebAverage3));
+
+// Mengambil rata-rata dari semua periode Desember-Februari
+var tmlAvg = tmlAvgCollection.mean();   
+
+// Menentukan parameter visualisasi
+var visParams = {
+  min: 0.4,
+  max: 0.6,
+  palette: [
+    '040274', '040281', '0502a3', '0502b8', '0502ce', '0502e6',
+    '0602ff', '235cb1', '307ef3', '269db1', '30c8e2', '32d3ef',
+    '3be285', '3ff38f', '86e26d', '3ae237', 'b5e22e', 'd6e21f',
+    'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
+    'ff0000', 'de0101', 'c21301', 'a71001', '911003'
+  ],
+};
+
+// Menampilkan data ke peta
+Map.setCenter(100, 0, 8); // Pusatkan peta ke koordinat (100, 0) dengan zoom level 8
+Map.addLayer(tmlAvg, visParams, 'Average TML (Dec-Feb 2018-2022)');
+Export.image.toDrive({image      : tmlAvg,
+                      folder     : 'FIX HASIL TESIS',
+                      description: 'TMLMB',
+                      scale      : 8905.6,
+                      region     : table});
+
+
+Script Random Forest
+//Memuat data kehadiran
+var Data = ee.FeatureCollection("users/melasari0293/MPII");
+print('Data Awal:', Data.size());
+//Tentukan resolusi spasial untuk bekerja dengan (m)
+var resolusispasial = 8905.6; 
+function RemoveDuplicates(data){
+  var raster = ee.Image.random().reproject('EPSG:4326', null, resolusispasial);
+  var point = raster.sampleRegions({collection:ee.FeatureCollection(data), scale: 8905.6, geometries: true});
+  return point.distinct('random');}
+var Data = RemoveDuplicates(Data);
+print('Data Akhir:', Data.size());
+//Tambahkan dua peta ke layar
+var kiri = ui.Map();
+var kanan = ui.Map();
+ui.root.clear();
+ui.root.add(kiri);
+ui.root.add(kanan);
+//Tautkan peta, jadi saat menyeret satu peta, peta lainnya akan dipindahkan secara sinkron
+ui.Map.Linker([kiri, kanan], 'change-bounds');
+//Tentukan AOI
+var shp = ee.FeatureCollection("users/melasari0293/DPI");
+//Tambahkan batas wilayah studi ke peta
+var bingkai = ee.Image().byte().paint({
+  featureCollection: shp, color: 1, width: 3});
+kanan.addLayer(bingkai, {palette: 'black'}, "Wilayah Penelitian");
+kiri.addLayer(bingkai, {palette: 'black'}, "Wilayah Penelitian");
+//Pusatkan setiap peta ke area yang diminati
+kanan.centerObject(shp, 6);
+kiri.centerObject(shp, 6);
+//Memuat data citra lingkungan
+// Fungsi untuk mendapatkan rata-rata klorofil-a dari Desember hingga Februari untuk setiap tahun
+function getDecFebAverage(year) {
+  var startDate = ee.Date.fromYMD(year, 9, 1);
+  var endDate = ee.Date.fromYMD(year, 11, 30);
+  var collection = ee.ImageCollection('NASA/OCEANDATA/MODIS-Aqua/L3SMI')
+                      .filterDate(startDate, endDate)
+                      .select('chlor_a');
+  return collection.mean().clip(shp).set('year', year);
+}
+
+// Mendapatkan rata-rata klorofil-a untuk setiap periode Desember-Februari dari tahun 2018-2022
+var years = [2018, 2019, 2020, 2021, 2022];
+var chlAvgCollection = ee.ImageCollection(years.map(getDecFebAverage));
+
+// Mengambil rata-rata dari semua periode Desember-Februari
+var chlAvg = chlAvgCollection.mean();
+
+// Fungsi untuk mendapatkan rata-rata salinitas dari Desember hingga Februari untuk setiap tahun
+function getDecFebAverage1(year) {
+  var startDate = ee.Date.fromYMD(year, 9, 1);
+  var endDate = ee.Date.fromYMD(year, 11, 30);
+  var collection = ee.ImageCollection('HYCOM/sea_temp_salinity')
+                      .filterDate(startDate, endDate)
+                      .select('salinity_0').map(function scaleAndOffset(image) {return ee.Image(image).multiply(0.001).add(20)});
+  return collection.mean().clip(shp).set('year', year);
+}
+
+// Mendapatkan rata-rata salinitas untuk setiap periode Desember-Februari dari tahun 2018-2022
+var years = [2018, 2019, 2020, 2021, 2022];
+var sssAvgCollection = ee.ImageCollection(years.map(getDecFebAverage1));
+
+// Mengambil rata-rata dari semua periode Desember-Februari
+var sssAvg = sssAvgCollection.mean();
+
+// Fungsi untuk mendapatkan rata-rata SST dari Desember hingga Februari untuk setiap tahun
+function getDecFebAverage2(year) {
+  var startDate = ee.Date.fromYMD(year, 9, 1);
+  var endDate = ee.Date.fromYMD(year, 11, 30);
+  var collection = ee.ImageCollection('NASA/OCEANDATA/MODIS-Aqua/L3SMI')
+                      .filterDate(startDate, endDate)
+                      .select('sst');
+  return collection.mean().clip(shp).set('year', year);
+}
+
+// Mendapatkan rata-rata SST untuk setiap periode Desember-Februari dari tahun 2018-2022
+var years = [2018, 2019, 2020, 2021, 2022];
+var sstAvgCollection = ee.ImageCollection(years.map(getDecFebAverage2));
+
+// Mengambil rata-rata dari semua periode Desember-Februari
+var sstAvg = sstAvgCollection.mean();
+
+// Fungsi untuk mendapatkan rata-rata TML dari Desember hingga Februari untuk setiap tahun
+function getDecFebAverage3(year) {
+  var startDate = ee.Date.fromYMD(year, 9, 1);
+  var endDate = ee.Date.fromYMD(year, 11, 30);
+  var collection = ee.ImageCollection('HYCOM/sea_surface_elevation')
+                      .filterDate(startDate, endDate)
+                      .select('surface_elevation').map(function scaleAndOffset(image) {return ee.Image(image).multiply(0.001)});
+  return collection.mean().clip(shp).set('year', year);
+}
+
+// Mendapatkan rata-rata TML untuk setiap periode Desember-Februari dari tahun 2018-2022
+var years = [2018, 2019, 2020, 2021, 2022];
+var tmlAvgCollection = ee.ImageCollection(years.map(getDecFebAverage3));
+
+// Mengambil rata-rata dari semua periode Desember-Februari
+var tmlAvg = tmlAvgCollection.mean();
+
+//Pilih subset band yang akan disimpan untuk pemodelan kesesuaian habitat
+var lingkungan = tmlAvg.addBands(sssAvg).addBands(sstAvg).addBands(chlAvg);
+var bands = lingkungan.bandNames();
+
+//Menampilkan lapisan pada peta
+kanan.addLayer(sstAvg, {bands:['sst'], min: 28, max: 32,  palette: ['030d81', '0519ff', '05e8ff', '11ff01', 'fbff01', 'ff9901', 'ff0000','ad0000']}, 'SPL');
+kanan.addLayer(chlAvg, {bands:['chlor_a'], min: 0, max: 0.6, palette: ['030d81', '0519ff', '05e8ff', '11ff01', 'fbff01', 'ff9901', 'ff0000','ad0000']}, 'CHL-A');
+kanan.addLayer(sssAvg, {bands:['salinity_0'], min: 33.5, max: 34.4, palette: ['000000', '005aff', '43c8c8', 'fff700', 'ff0000']}, 'SALINITAS');
+kanan.addLayer(tmlAvg, {bands:['surface_elevation'], min: 0.4, max: 0.5, palette: ['000000', '005aff', '43c8c8', 'fff700', 'ff0000']}, 'TML');
+//Buat gambar dari lokasi keberadaan. Piksel di mana memiliki lokasi kehadiran akan dihapus dari area tersebut untuk menghasilkan ketidakhadiran semu. Ini akan mencegah kehadiran dan ketidakhadiran semu dalam piksel yang sama.
+var tutup = Data
+  .reduceToImage({
+    properties: ['random'],
+    reducer: ee.Reducer.first()
+}).reproject('EPSG:4326', null, ee.Number(resolusispasial)).mask().neq(1).selfMask();
+//Pemilihan pseudo-absen acak sederhana di seluruh area minat
+var area = tutup.updateMask(chlAvg).clip(shp);
+//Area tampilan untuk pembuatan pseudo-absen
+kanan.addLayer(area, {},'Wilayah Ketidakhadiran');
+//Tentukan fungsi untuk membuat kisi di atas AOI
+function makeGrid(geometry, scale) {
+//pixelkoordinat mengembalikan gambar dengan setiap piksel diberi label dengan nilai bujur dan lintang.
+  var koordinat = ee.Image.pixelLonLat();
+//Pilih garis bujur dan garis lintang, kalikan dengan angka besar, lalu pangkas menjadi bilangan bulat
+  var bujur = koordinat
+    .select('longitude')
+    .multiply(100000)
+    .toInt();
+  var lintang = koordinat
+    .select('latitude')
+    .multiply(100000)
+    .toInt();
+  return bujur
+    .multiply(lintang)
+    .reduceToVectors({
+      geometry: shp,
+      scale: scale,
+      geometryType: 'polygon',
+    });}
+//Buat kisi dan hapus sel di luar AOI
+var skala = 20000;
+var kisi = makeGrid(shp, skala);
+kanan.addLayer(kisi, {},'Kisi Validasi Silang');
+//Tentukan fungsi untuk menghasilkan vektor angka acak antara 1 dan 1000
+function runif(length) {
+    return Array.apply(null, Array(length)).map(function() {
+        return Math.round(Math.random() * (1000 - 1) + 1);});}
+// Tentukan fungsi SDM. Aktifkan classifier yang diinginkan, random forest, atau gradien boosting. Perhatikan bahwa algoritme lain tersedia di GEE. Lihat ee.Classifiers pada dokumentasi untuk informasi lebih lanjut.
+function SDM(x) {
+    var acak = ee.Number(x);
+//Pisahkan blok secara acak untuk pelatihan dan validasi
+    var kotak = ee.FeatureCollection(kisi).randomColumn({seed:acak}).sort('random');
+    var latih = kotak.filter(ee.Filter.lt('random', bagi));
+    var uji = kotak.filter(ee.Filter.gte('random', bagi));
+//Kehadiran
+    var titikkehadiran = ee.FeatureCollection(Data);
+    titikkehadiran = titikkehadiran.map(function(feature){return feature.set('PresAbs', 1)});
+    var titikkehadiranlatih = titikkehadiran.filter(ee.Filter.bounds(latih));
+    var titikkehadiranuji = titikkehadiran.filter(ee.Filter.bounds(uji));
+//Absen semu
+    var titikketidakhadiranlatih = area.sample({region: latih, scale: resolusispasial, numPixels: titikkehadiranlatih.size().add(300), seed:acak, geometries: true, tileScale: 16});
+    titikketidakhadiranlatih = titikketidakhadiranlatih.randomColumn().sort('random').limit(ee.Number(titikkehadiranlatih.size()));
+    titikketidakhadiranlatih = titikketidakhadiranlatih.map(function(feature){
+        return feature.set('PresAbs', 0);});
+    var titikketidakhadiranuji = area.sample({region: uji, scale: resolusispasial, numPixels: titikkehadiranuji.size().add(100), seed:acak, geometries: true, tileScale: 16});
+    titikketidakhadiranuji = titikketidakhadiranuji.randomColumn().sort('random').limit(ee.Number(titikkehadiranuji.size()));
+    titikketidakhadiranuji = titikketidakhadiranuji.map(function(feature){
+        return feature.set('PresAbs', 0);});
+//Gabungkan kehadiran dan titik absen semu
+    var partisilatih = titikkehadiranlatih.merge(titikketidakhadiranlatih);
+    var partisiuji = titikkehadiranuji.merge(titikketidakhadiranuji);
+//Ekstrak nilai kovariat lokal dari citra prediktor multiband pada titik pelatihan
+    var ekstrak = lingkungan.sampleRegions({collection: partisilatih, properties: ['PresAbs'], scale: resolusispasial, tileScale: 16});
+//Klasifikasi menggunakan random forest
+    var model = ee.Classifier.smileRandomForest({
+       numberOfTrees: 800,
+       variablesPerSplit: null,
+       minLeafPopulation: 2,
+       bagFraction: 1,
+       maxNodes: null,
+       seed: acak});
+//Probabilitas kehadiran
+    var klasifikasi = model.setOutputMode('PROBABILITY').train(ekstrak, 'PresAbs', bands); 
+    var klasifikasigambar = lingkungan.select(bands).classify(klasifikasi);
+//Peta keberadaan/ketidakhadiran biner
+    var klasifikasibinari = model.setOutputMode('CLASSIFICATION').train(ekstrak, 'PresAbs', bands); 
+    var klasifikasigambarbin = lingkungan.select(bands).classify(klasifikasibinari);
+    return ee.List([klasifikasigambar, klasifikasigambarbin, partisilatih, partisiuji]);}
+//Tentukan partisi untuk pelatihan dan pengujian data
+var bagi = 0.70;
+//Tentukan jumlah pengulangan
+var angka = 10;
+//Sesuaikan SDM
+var hasilakhir = ee.List([35,68,43,54,17,46,76,88,24,12]).map(SDM);
+//Ekstrak hasil dari daftar
+var hasilakhir = hasilakhir.flatten();
+//Tetapkan parameter visualisasi
+var visualisasi = {
+  min: 0,
+  max: 1,
+  palette: ["#440154FF","#482677FF","#404788FF","#33638DFF","#287D8EFF",
+  "#1F968BFF","#29AF7FFF","#55C667FF","#95D840FF","#DCE319FF"],};
+//Ekstrak semua prediksi model
+var citra = ee.List.sequence(0,ee.Number(angka).multiply(4).subtract(1),4).map(function(x){
+  return hasilakhir.get(x)});
+//Hitung rata-rata semua model individu berjalan
+var peta = ee.ImageCollection.fromImages(citra).mean();
+//Tambahkan layer kesesuaian habitat akhir dan lokasi keberadaan ke peta
+kiri.addLayer(peta, visualisasi, 'Kesesuaian Habitat');
+kiri.addLayer(Data, {color:'blue'}, 'Kehadiran', 1);
+//Buat legenda untuk peta kesesuaian habitat
+var legenda = ui.Panel({style: {position: 'bottom-left', padding: '8px 15px'}});
+legenda.add(ui.Label({
+  value: "Kesesuaian Habitat",
+  style: {fontWeight: 'bold', fontSize: '18px', margin: '0 0 4px 0', padding: '0px'}}));
+legenda.add(ui.Thumbnail({
+  image: ee.Image.pixelLonLat().select(0),
+  params: {
+    bbox: [0,0,1,0.1],
+    dimensions: '200x20',
+    format: 'png',
+    min: 0,
+    max: 1,
+    palette: ["#440154FF","#482677FF","#404788FF","#33638DFF","#287D8EFF",
+  "#1F968BFF","#29AF7FFF","#55C667FF","#95D840FF","#DCE319FF"]},
+  style: {stretch: 'horizontal', margin: '8px 8px', maxHeight: '40px'},}));
+legenda.add(ui.Panel({
+  widgets: [
+    ui.Label('Rendah', {margin: '0px 0px', textAlign: 'left', stretch: 'horizontal'}),
+    ui.Label('Sedang', {margin: '0px 0px', textAlign: 'center', stretch: 'horizontal'}),
+    ui.Label('Tinggi', {margin: '0px 0px', textAlign: 'right', stretch: 'horizontal'}),
+    ],layout: ui.Panel.Layout.Flow('horizontal')}));
+legenda.add(ui.Panel(
+  [ui.Label({value: "Kehadiran",style: {fontWeight: 'bold', fontSize: '16px', margin: '4px 0 4px 0'}}),
+   ui.Label({style:{color:"blue",margin: '4px 0 0 4px'}, value:'◉'})],
+  ui.Panel.Layout.Flow('horizontal')));
+kiri.add(legenda);
+//Ekstrak semua prediksi model
+var citra2 = ee.List.sequence(1,ee.Number(angka).multiply(4).subtract(1),4).map(function(x){
+  return hasilakhir.get(x)});
+//Hitung rata-rata dari semua model individual yang berjalan
+var petadistribusi = ee.ImageCollection.fromImages(citra2).mode();
+//Tambahkan peta distribusi akhir dan lokasi keberadaan ke peta
+kanan.addLayer(petadistribusi, 
+  {palette: ["black", "red"], min: 0, max: 1}, 
+  'Distribusi Potensial');
+kanan.addLayer(Data, {color:'blue'}, 'Kehadiran', 1);
+//Buat legenda untuk peta distribusi
+var legenda2 = ui.Panel({style: {position: 'bottom-left',padding: '8px 15px'}});
+legenda2.add(ui.Label({
+  value: "Peta Distribusi Potensial",
+  style: {fontWeight: 'bold',fontSize: '18px',margin: '0 0 4px 0',padding: '0px'}}));
+var warna2 = ["red","black"];
+var nama2 = ['Kehadiran', 'Ketidakhadiran'];
+var entri2;
+for (var x = 0; x<2; x++){
+  entri2 = [
+    ui.Label({style:{color:warna2[x],margin: '4px 0 4px 0'}, value:'██'}),
+    ui.Label({value: nama2[x],style: {margin: '4px 0 4px 4px'}})];
+  legenda2.add(ui.Panel(entri2, ui.Panel.Layout.Flow('horizontal')));}
+legenda2.add(ui.Panel(
+  [ui.Label({value: "Kehadiran",style: {fontWeight: 'bold', fontSize: '16px', margin: '0 0 4px 0'}}),
+   ui.Label({style:{color:"blue",margin: '0 0 4px 4px'}, value:'◉'})],
+  ui.Panel.Layout.Flow('horizontal')));
+kanan.add(legenda2);
+//Ekstrak kumpulan data pengujian/validasi
+var Datasetuji = ee.List.sequence(3,ee.Number(angka).multiply(4).subtract(1),4).map(function(x){
+                      return hasilakhir.get(x)});
+//Periksa ulang apakah Anda memiliki jumlah poin yang memuaskan untuk validasi model
+print('Jumlah Data untuk Validasi Model', ee.List.sequence(0,ee.Number(angka).subtract(1),1)
+.map(function(x){
+  return ee.List([ee.FeatureCollection(Datasetuji.get(x)).filter(ee.Filter.eq('PresAbs',1)).size(),
+         ee.FeatureCollection(Datasetuji.get(x)).filter(ee.Filter.eq('PresAbs',0)).size()]);}));
+//Tentukan fungsi untuk memperkirakan sensitivitas, spesifisitas, dan presisi pada ambang batas yang berbeda
+function getAcc(img,TP){
+  var probabilitas = img.sampleRegions({collection: TP, properties: ['PresAbs'], scale: resolusispasial, tileScale: 16});
+  var urutan = ee.List.sequence({start: 0, end: 1, count: 25});
+  return ee.FeatureCollection(urutan.map(function(cutoff) {
+  var hadir = probabilitas.filterMetadata('PresAbs','equals',1);
+  var TP =  ee.Number(hadir.filterMetadata('classification','greater_than',cutoff).size());
+  var TPR = TP.divide(hadir.size());
+  var tidakhadir = probabilitas.filterMetadata('PresAbs','equals',0);
+  var FN = ee.Number(hadir.filterMetadata('classification','less_than',cutoff).size());
+  var TN = ee.Number(tidakhadir.filterMetadata('classification','less_than',cutoff).size());
+  var TNR = TN.divide(tidakhadir.size());
+  var FP = ee.Number(tidakhadir.filterMetadata('classification','greater_than',cutoff).size());
+  var FPR = FP.divide(tidakhadir.size());
+  var presisi = TP.divide(TP.add(FP));
+  var SUMSS = TPR.add(TNR);
+  return ee.Feature(null,{cutoff: cutoff, TP:TP, TN:TN, FP:FP, FN:FN, TPR:TPR, TNR:TNR, FPR:FPR, Precision:presisi, SUMSS:SUMSS});
+  }));}
+//Hitung AUC Receiver Operator Characteristic
+function getAUCROC(x){
+  var X = ee.Array(x.aggregate_array('FPR'));
+  var Y = ee.Array(x.aggregate_array('TPR')); 
+  var X1 = X.slice(0,1).subtract(X.slice(0,0,-1));
+  var Y1 = Y.slice(0,1).add(Y.slice(0,0,-1));
+  return X1.multiply(Y1).multiply(0.5).reduce('sum',[0]).abs().toList().get(0);}
+function AUCROCaccuracy(x){
+  var HSM = ee.Image(citra.get(x));
+  var TData = ee.FeatureCollection(Datasetuji.get(x));
+  var Acc = getAcc(HSM, TData);
+  return getAUCROC(Acc);}
+var AUCROC = ee.List.sequence(0,ee.Number(angka).subtract(1),1).map(AUCROCaccuracy);
+print('AUC-ROC:', AUCROC);
+var meanAUCROC = AUCROC.reduce(ee.Reducer.mean());
+print('Mean AUC-ROC', AUCROC.reduce(ee.Reducer.mean()));
+//Hitung AUC Precision Recall Curve
+function getAUCPR(roc){
+  var X = ee.Array(roc.aggregate_array('TPR'));
+  var Y = ee.Array(roc.aggregate_array('Precision')); 
+  var X1 = X.slice(0,1).subtract(X.slice(0,0,-1));
+  var Y1 = Y.slice(0,1).add(Y.slice(0,0,-1));
+  return X1.multiply(Y1).multiply(0.5).reduce('sum',[0]).abs().toList().get(0);}
+function AUCPRaccuracy(x){
+  var HSM = ee.Image(citra.get(x));
+  var TData = ee.FeatureCollection(Datasetuji.get(x));
+  var Acc = getAcc(HSM, TData);
+  return getAUCPR(Acc);}
+var AUCPRs = ee.List.sequence(0,ee.Number(angka).subtract(1),1).map(AUCPRaccuracy);
+print('AUC-PR:', AUCPRs);
+print('Mean AUC-PR', AUCPRs.reduce(ee.Reducer.mean()));
+//Berfungsi untuk mengekstrak metrik lainnya
+function getMetrics(x){
+  var HSM = ee.Image(citra.get(x));
+  var TData = ee.FeatureCollection(Datasetuji.get(x));
+  var Acc = getAcc(HSM, TData);
+  return Acc.sort({property:'SUMSS',ascending:false}).first();}
+//Ekstrak sensitivitas, spesifisitas, dan nilai ambang rata-rata
+var Metrics = ee.List.sequence(0,ee.Number(angka).subtract(1),1).map(getMetrics);
+print('Sensitivitas:', ee.FeatureCollection(Metrics).aggregate_array("TPR"));
+print('Spesifitas:', ee.FeatureCollection(Metrics).aggregate_array("TNR"));
+var MeanThresh = ee.Number(ee.FeatureCollection(Metrics).aggregate_array("cutoff").reduce(ee.Reducer.mean()));
+print('Mean threshold:', MeanThresh);
+var DistributionMap2 = peta.gte(MeanThresh);
+//Ekspor prediksi model akhir ke drive
+Export.image.toDrive({
+  image: peta,
+  description: 'HSI',
+  scale: resolusispasial,
+  maxPixels: 1e10,
+  region: shp});
+//Ekspor model biner final berdasarkan suara terbanyak
+Export.image.toDrive({
+  image: petadistribusi,
+  description: 'Distribusi Potensial',
+  scale: resolusispasial,
+  maxPixels: 1e10,
+  region: shp
+});
+//Ekspor model biner final berdasarkan ambang batas yang memaksimalkan jumlah spesifisitas dan sensitivitas
+Export.image.toDrive({
+  image: DistributionMap2.unmask(-9999),
+  description: 'Distribusi Potensial Threshold',
+  scale: resolusispasial,
+  maxPixels: 1e10,
+  region: shp});
+//Metrik Penilaian Akurasi Ekspor
+Export.table.toDrive({
+  collection: ee.FeatureCollection(AUCROC
+                        .map(function(element){
+                        return ee.Feature(null,{AUCROC:element})})),
+  description: 'AUCROC',
+  fileFormat: 'CSV',});
+Export.table.toDrive({
+  collection: ee.FeatureCollection(AUCPRs
+                        .map(function(element){
+                        return ee.Feature(null,{AUCPR:element})})),
+  description: 'AUCPR',
+  fileFormat: 'CSV',});
+Export.table.toDrive({
+  collection: ee.FeatureCollection(Metrics),
+  description: 'Metrics',
+  fileFormat: 'CSV',});
+//Ekstrak set data pelatihan
+var TrainingDatasets = ee.List.sequence(7,ee.Number(angka).multiply(4).subtract(1),4).map(function(x){
+  return hasilakhir.get(x)});
+Export.table.toDrive({
+  collection: TrainingDatasets.get(0),
+  description: 'Datalatih',
+  fileFormat: 'CSV',});
+Export.table.toDrive({
+  collection: Datasetuji.get(0),
+  description: 'Datauji',
+  fileFormat: 'CSV',});
+
